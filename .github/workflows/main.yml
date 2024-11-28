@@ -1,0 +1,63 @@
+name: Create Shipify Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Create ZIP archive
+        run: |
+          zip -r "shipify-template-${{ steps.get_version.outputs.VERSION }}.zip" . \
+          --exclude ".git/*" \
+          --exclude ".github/*" \
+          --exclude "node_modules/*" \
+          --exclude ".next/*" \
+          --exclude ".env*" \
+          --exclude ".env.local" \
+          --exclude ".env.development" \
+          --exclude ".env.production" \
+          --exclude ".DS_Store" \
+          --exclude "release.sh"
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: shipify-template-${{ steps.get_version.outputs.VERSION }}.zip
+          body: |
+            # 🚢 Shipify Template Release ${{ steps.get_version.outputs.VERSION }}
+            
+            ## 📥 Installation
+            1. Download the `shipify-template-${{ steps.get_version.outputs.VERSION }}.zip` file
+            2. Extract the contents to your desired location
+            3. Run `npm install` to install dependencies
+            4. Follow the setup instructions in the README.md file
+            
+            ## ⚙️ Setup Requirements
+            - Node.js 18.17 or later
+            - npm or yarn package manager
+            
+            ## 🔑 Initial Configuration
+            1. Copy `.env.example` to `.env.local`
+            2. Update the environment variables with your own values
+            3. Run `npm run dev` to start the development server
+            
+            ## 💬 Support
+            If you need help, please refer to the documentation or reach out to our support team.
+            
+            ## 🎉 Thank you for using Shipify!
